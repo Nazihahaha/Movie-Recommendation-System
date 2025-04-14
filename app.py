@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 from sklearn.metrics.pairwise import sigmoid_kernel
 import requests
-
+import ast
 
 
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
@@ -27,7 +27,7 @@ def fetch_movie_poster(movie_id):
     poster_path = data.get('poster_path')
     return f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
 
-def recommend(title, sig =sig):
+def recommend(title, min_similarity=0.5, sig=sig):
     # Get the index corresponding to original_title
     idx = movies[movies['original_title'] == title].index[0]
 
@@ -38,7 +38,7 @@ def recommend(title, sig =sig):
     sig_scores = sorted(sig_scores, key=lambda x: x[1], reverse=True)
 
     # Scores of the 10 most similar movies
-    sig_scores = [i for i in sig_scores if i[1] > min_similarity][1:6]
+    sig_scores = [i for i in sig_scores if i[1] > min_similarity][1:21]
 
     # Movie indices
     #movie_indices = [i[0] for i in sig_scores]
@@ -46,21 +46,36 @@ def recommend(title, sig =sig):
     # Get recommendations with posters
     recommendations = []
     posters = []
+        # Get the genre data
+    target_genre = movies[movies['original_title'] == title]['genres'].iloc[0]
+
+    # If it's stored as a string (not list), convert it first:
+    if isinstance(target_genre, str):
+        target_genre = ast.literal_eval(target_genre)
+
+    # Extract the genre names
+    target_genre_names = [genre['name'] for genre in target_genre]
     
-    for i, score in sig_scores[1:]: #skip self
-        if i[1] > min_similarity:
+    print("target",target_genre_names)
+    for i, scores in sig_scores: #skip self
+        if scores > min_similarity:
             movie_id = movies.iloc[i]['id']  # Assuming your DataFrame has TMDB IDs
             poster = fetch_movie_poster(movie_id)
-            movie_data = movies.iloc[i[0]]
-            movie_genres = set(movie_data['genres'])
-            if poster:  # Only include movies with posters
+
+            movie_data = movies.iloc[i]['genres']
+            if isinstance(movie_data, str):
+                movie_data = ast.literal_eval(movie_data)
+            genre_names = [genre['name'] for genre in movie_data]
+            #print(genre_names)
+            target_genres_set = set(target_genre_names)
+            movie_genres_set = set(genre_names)
+            common_genres = target_genres_set & movie_genres_set #checking common genres
+            if len(common_genres) >= 2:
                 recommendations.append(movies.iloc[i]['original_title'])
                 posters.append(poster)
+                
     
     return recommendations, posters
-
-
-
 
 st.title('Movie Recommendation System')
 
@@ -69,28 +84,24 @@ st.title('Movie Recommendation System')
 selected_movie_name = st.selectbox('Select a movie you like',
                     movies['original_title'].values)
 
-
-
 if st.button('Show Recommendation'):
-    recommended_movie_names,recommended_movie_posters = recommend(selected_movie_name)
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    with col1:
-        st.text(recommended_movie_names[0])
-        st.image(recommended_movie_posters[0])
-    with col2:
-        st.text(recommended_movie_names[1])
-        st.image(recommended_movie_posters[1])
-
-    with col3:
-        st.text(recommended_movie_names[2])
-        st.image(recommended_movie_posters[2])
-    with col4:
-        st.text(recommended_movie_names[3])
-        st.image(recommended_movie_posters[3])
-    with col5:
-        st.text(recommended_movie_names[4])
-        st.image(recommended_movie_posters[4])
-    with col6:
-        st.text(recommended_movie_names[5])
-        st.image(recommended_movie_posters[5])
-
+    recommended_movie_names, recommended_movie_posters = recommend(selected_movie_name)
+    
+    if recommended_movie_names:
+        # Split recommendations into chunks of 5
+        for i in range(0, len(recommended_movie_names), 5):
+            # Create a row of up to 5 columns
+            cols = st.columns(5)
+            
+            # Fill this row with up to 5 recommendations
+            for j in range(5):
+                if i + j < len(recommended_movie_names):
+                    with cols[j]:
+                        st.text(recommended_movie_names[i + j])
+                        if i + j < len(recommended_movie_posters):
+                            st.image(recommended_movie_posters[i + j])
+                else:
+                    with cols[j]:
+                        st.empty()  # Empty space if less than 5 in this row
+    else:
+        st.warning("No recommendations available")
