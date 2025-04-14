@@ -5,13 +5,28 @@ import pandas as pd
 from sklearn.metrics.pairwise import sigmoid_kernel
 import requests
 import ast
+import os
+import gdown
 
 app = Flask(__name__)
+
+
+
+# Google Drive download if movie_dict.pkl is missing
+if not os.path.exists("movie_dict.pkl"):
+    url = "https://drive.google.com/file/d/1v9pt30tv0CTQEmGlAGvO0uJE9KoqrVgP/view?usp=drive_link"
+    output = "movie_dict.pkl"
+    gdown.download(url, output, quiet=False)
 
 
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict) #Datafreame creation
 
+# Google Drive download if movie_dict.pkl is missing
+if not os.path.exists("similarity.pkl"):
+    url = "https://drive.google.com/file/d/1YXH0xBiPzkf1ymdsXXGOFnscDC2FlHHg/view?usp=drive_link"
+    output = "similarity.pkl"
+    gdown.download(url, output, quiet=False)
 # Load or compute similarity matrix
 sig = pickle.load(open('similarity.pkl', 'rb'))
 
