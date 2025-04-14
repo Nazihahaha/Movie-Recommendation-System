@@ -18,7 +18,7 @@ indices = pd.Series(movies.index, index=movies['original_title']).drop_duplicate
 
 def recommend(title, sig =sig):
     # Get the index corresponding to original_title
-    idx = movies[title]
+    idx = movies[movies['original_title'] == title].index[0]
 
     # Get the pairwsie similarity scores
     sig_scores = list(enumerate(sig[idx]))
