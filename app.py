@@ -1,9 +1,12 @@
+from flask import Flask, request, jsonify, render_template
 import streamlit as st
 import pickle
 import pandas as pd
 from sklearn.metrics.pairwise import sigmoid_kernel
 import requests
 import ast
+
+app = Flask(__name__)
 
 
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
@@ -77,7 +80,7 @@ def recommend(title, min_similarity=0.5, sig=sig):
     
     return recommendations, posters
 
-st.title('Movie Recommendation System')
+'''st.title('Movie Recommendation System')
 
 
 
@@ -104,4 +107,22 @@ if st.button('Show Recommendation'):
                     with cols[j]:
                         st.empty()  # Empty space if less than 5 in this row
     else:
-        st.warning("No recommendations available")
+        st.warning("No recommendations available")'''
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    movie_list = movies['original_title'].values
+    if request.method == 'POST':
+        selected_movie = request.form.get('movie')
+        recommended_movie_names, recommended_movie_posters = recommend(selected_movie)
+        return render_template(
+            'index.html',
+            movie_list=movie_list,
+            selected_movie=selected_movie,
+            recommended=zip(recommended_movie_names, recommended_movie_posters)
+        )
+
+    return render_template('index.html', movie_list=movie_list)
+
+if __name__ == '__main__':
+    app.run(debug=True)
