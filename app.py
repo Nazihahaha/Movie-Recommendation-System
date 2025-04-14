@@ -38,22 +38,26 @@ def recommend(title, sig =sig):
     sig_scores = sorted(sig_scores, key=lambda x: x[1], reverse=True)
 
     # Scores of the 10 most similar movies
-    sig_scores = sig_scores[1:6]
+    sig_scores = [i for i in sig_scores if i[1] > min_similarity][1:6]
 
     # Movie indices
     #movie_indices = [i[0] for i in sig_scores]
 
-    movie_indices = []
-    recommended_movies_posters = []
-    for i in sig_scores:
-        movie_id = i[0]
-        # fetch movie poster from API
-        recommended_movies_posters.append(fetch_poster(movie_id))
-        movie_indices.append(i[0])
-
-
-    # Top 10 most similar movies
-    return movies['original_title'].iloc[movie_indices], recommended_movies_posters
+    # Get recommendations with posters
+    recommendations = []
+    posters = []
+    
+    for i, score in sig_scores[1:]: #skip self
+        if i[1] > min_similarity:
+            movie_id = movies.iloc[i]['id']  # Assuming your DataFrame has TMDB IDs
+            poster = fetch_movie_poster(movie_id)
+            movie_data = movies.iloc[i[0]]
+            movie_genres = set(movie_data['genres'])
+            if poster:  # Only include movies with posters
+                recommendations.append(movies.iloc[i]['original_title'])
+                posters.append(poster)
+    
+    return recommendations, posters
 
 
 
@@ -68,8 +72,8 @@ selected_movie_name = st.selectbox('Select a movie you like',
 
 
 if st.button('Show Recommendation'):
-    recommended_movie_names,recommended_movie_posters = recommend(selected_movie)
-    col1, col2, col3, col4, col5 = st.beta_columns(5)
+    recommended_movie_names,recommended_movie_posters = recommend(selected_movie_name)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
         st.text(recommended_movie_names[0])
         st.image(recommended_movie_posters[0])
@@ -86,4 +90,7 @@ if st.button('Show Recommendation'):
     with col5:
         st.text(recommended_movie_names[4])
         st.image(recommended_movie_posters[4])
+    with col6:
+        st.text(recommended_movie_names[5])
+        st.image(recommended_movie_posters[5])
 
