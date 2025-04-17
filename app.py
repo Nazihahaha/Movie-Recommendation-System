@@ -95,34 +95,6 @@ def recommend(title, min_similarity=0.5, sig=sig):
     
     return recommendations, posters
 
-'''st.title('Movie Recommendation System')
-
-
-
-selected_movie_name = st.selectbox('Select a movie you like',
-                    movies['original_title'].values)
-
-if st.button('Show Recommendation'):
-    recommended_movie_names, recommended_movie_posters = recommend(selected_movie_name)
-    
-    if recommended_movie_names:
-        # Split recommendations into chunks of 5
-        for i in range(0, len(recommended_movie_names), 5):
-            # Create a row of up to 5 columns
-            cols = st.columns(5)
-            
-            # Fill this row with up to 5 recommendations
-            for j in range(5):
-                if i + j < len(recommended_movie_names):
-                    with cols[j]:
-                        st.text(recommended_movie_names[i + j])
-                        if i + j < len(recommended_movie_posters):
-                            st.image(recommended_movie_posters[i + j])
-                else:
-                    with cols[j]:
-                        st.empty()  # Empty space if less than 5 in this row
-    else:
-        st.warning("No recommendations available")'''
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
