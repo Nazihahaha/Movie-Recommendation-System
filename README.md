@@ -1,6 +1,22 @@
-# Movie Recommendation System
+# 🎬 Movie Recommendation System
  
 A web-based movie recommendation system built with Python, Flask, Pandas and deployed using Render. This project suggests movies based on user preferences using content and genre based filtering.
+
+### 📌 Features
+
+- Recommends similar movies based on content similarity
+- Uses sigmoid kernel similarity matrix
+- Filters recommendations using genre similarity
+- Displays movie posters using TMDB API
+- Interactive web interface built using Flask
+
+### 🛠️ Tech Stack
+
+- Python
+- Pandas
+- Scikit-learn
+- Flask
+- HTML/CSS
 
 ### 🌐 Live Demo
 
